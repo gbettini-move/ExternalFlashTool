@@ -87,7 +87,7 @@ class Eflash_reader_App :
             # Open serial connection
             self.dutDev = DUT( SerialController(self.smartc.sm.COMpath) )
             self.dutDev.serialP.open()
-
+            
             # Save download start time to get statistics
             start_time = time.monotonic()
 
