@@ -1,0 +1,4 @@
+.venv/
+Pipfile.lock
+dump.bin
+dump.txt
