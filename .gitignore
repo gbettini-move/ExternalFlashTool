@@ -1,4 +1,5 @@
 .venv/
-Pipfile.lock
 dump.bin
 dump.txt
+__pycache__/
+Pipfile.lock

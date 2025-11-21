@@ -1,16 +1,15 @@
 
-import serial, threading, time, regex
+import serial
+import threading
+import time
+import regex
 from typing import List, Tuple
 import serial.tools.list_ports
-
-
 
 err_pattern = regex.compile(r'E(-1|[0-9]{3})')
 BAUDRATE_SERIAL = 115200       # Fixed baudrate constant
 TIMEOUT_SERIAL = 3    # Fixed timeout constant
 TERMINATION_SERIAL = '\r\n'
-
-
 
 """
     SerialController class takes control over the given COM and it's principle works around send message / wait message.

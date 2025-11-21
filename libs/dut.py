@@ -7,7 +7,8 @@ from tqdm import trange
 from hashlib import sha256
 from typing import List, Tuple
 
-TOT_PAGE_BYTES = 2115  # Counting also O\r\n [2112+3]
+TOT_PAGE_BYTES   = 2115  # Counting also O\r\n [2112+3]
+MESSAGE_START_ID = 7 # 07 in hex
 
 class recordInfo:
     done: bool
@@ -130,7 +131,9 @@ class DUT :
     
     # read a complete page of eflash mem -> bin
     # Function do not use the AT class bc it's complicated -> directly use the serial
-    def dumpPage(self, page: str, filename : str, c_timeout : float = 4) :
+    # !!! Come funziona il timeout? Vorrei che scattasse solo se non arriva niente nel buffer per un po' di tempo (devo resettare il contatore come un watchdog!)
+
+    def dumpPage(self, page: str, filename : str, c_timeout : float = 4) -> bool:
 
         self.serialP.ser.flushInput()
         self.serialP.ser.timeout = 5
@@ -145,12 +148,20 @@ class DUT :
                 chunk = self.serialP.ser.read(TOT_PAGE_BYTES + len_cmd)  # Read page
                 buffer += chunk
         cln_buff = buffer[len_cmd:(TOT_PAGE_BYTES - 3) + len_cmd] # Remove cmd and O\r\n
-        print(f'Data recv len {len(cln_buff)}')
-        with open(filename + ".bin", 'ab') as rawfile:
-            rawfile.write(cln_buff)
-        hex_page = cln_buff.hex()
-        with open (filename + ".txt", "a") as hexfile:
-            hexfile.write(hex_page)
+        if cln_buff[0] == MESSAGE_START_ID: # check if the page is written or blank
+            # Append if is written
+            print(f'Data recv len {len(cln_buff)}') 
+            with open(filename + ".bin", 'ab') as rawfile:
+                rawfile.write(cln_buff)
+            hex_page = cln_buff.hex()
+            with open (filename + ".txt", "a") as hexfile:
+                hexfile.write(hex_page)
+            blank_finded = False # update flag
+            return blank_finded
+        else :
+            # set a flag if it is blank
+            blank_finded = True # update flag
+            return blank_finded
 
     
     # read all the MIC memory to bin file (recording data)

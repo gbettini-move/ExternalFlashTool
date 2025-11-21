@@ -116,10 +116,15 @@ class Eflash_reader_App :
 
             # Start from first page to page x
             print(colored("\nStart reading memory content...","magenta"))
+
+            # Initialized parameter for the cycle
             page_num = START_PAGE_NUM
-            while page_num < (START_PAGE_NUM + 5): # read 5 pages
+            find_blank = False
+
+            while ( page_num < (START_PAGE_NUM + 5) ) and ( not find_blank ): # read n pages or stop before if you find a blank
                 print(f"Reading page {page_num}... ")
-                self.dutDev.dumpPage(hex(page_num)[2:], filename) # convert dec page_num to hex -> 64 to '40'
+                # dump page and collect find_blank flag
+                find_blank = self.dutDev.dumpPage(hex(page_num)[2:], filename) # convert dec page_num to hex -> 64 to '40'
                 page_num += 1
 
             #==================================================================
@@ -135,7 +140,7 @@ class Eflash_reader_App :
             #==================================================================
             # DECODE PAGES
 
-            tot_page = 5 # I will count the pages during append process
+            tot_page = (page_num - 1) - START_PAGE_NUM # bc you also open and count the first blank page
 
             # Open the hex_page.txt
             with open("dump.txt", 'r') as f: 
