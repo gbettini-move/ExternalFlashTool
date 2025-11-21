@@ -140,7 +140,7 @@ class Eflash_reader_App :
             #==================================================================
             # DECODE PAGES
 
-            tot_page = (page_num - 1) - START_PAGE_NUM # bc you also open and count the first blank page
+            tot_page = page_num - START_PAGE_NUM 
 
             # Open the hex_page.txt
             with open("dump.txt", 'r') as f: 
@@ -180,6 +180,8 @@ class Eflash_reader_App :
 
             break
         #endWhile
+        print(colored("==============================", "magenta"))
+        print(colored(f"TOTAL PAGE READED: {tot_page}", "light_blue"))
 
 if __name__ == "__main__":
 
