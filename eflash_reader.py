@@ -84,59 +84,65 @@ class Eflash_reader_App :
                 print(colored('Invalid character, please enter again...', 'red'))
                 continue
             
-            # Open serial connection
-            self.dutDev = DUT( SerialController(self.smartc.sm.COMpath) )
-            self.dutDev.serialP.open()
-            
-            # Save download start time to get statistics
-            start_time = time.monotonic()
+            # try-finally construct to ensure the connection is closed if any problems arise
+            try: 
+                # Open serial connection
+                self.dutDev = DUT( SerialController(self.smartc.sm.COMpath) )
+                self.dutDev.serialP.open()
+                
+                # Save download start time to get statistics
+                start_time = time.monotonic()
 
-            # RESET DEVICE
-            self.smartc.activateBootloader(False)
+                # RESET DEVICE
+                self.smartc.activateBootloader(False)
 
-            # Enter test mode with AT+TST
-            time.sleep(1)
-            self.dutDev.ATmode()
+                # Enter test mode with AT+TST
+                time.sleep(1)
+                self.dutDev.ATmode()
 
-            # Read only page 64 (0x40), first page
-            # print(colored("\nStart reading memory content...","magenta"))
-            # page_num = 40
-            # self.dutDev.dumpPage(page_num, filename)
+                # Read only page 64 (0x40), first page
+                # print(colored("\nStart reading memory content...","magenta"))
+                # page_num = 40
+                # self.dutDev.dumpPage(page_num, filename)
 
-            # Test a generic AT command
-            # time.sleep(1)
-            # self.dutDev.getAPPEUIandKEY()
+                # Test a generic AT command
+                # time.sleep(1)
+                # self.dutDev.getAPPEUIandKEY()
 
-            # Execute an infinite loop where:
-            #   1. Read page x (starting from page 0x40, or 64 in decimal).
-            #   2. Check if the first character is 0x07 (start byte).
-            #       [Y] Append to a binary file, save metadata to a log file, and print the page number (x of max y). Go back to point 1.
-            #       [N] Download complete
-            #   3. Generate a CSV file.
+                # Execute an infinite loop where:
+                #   1. Read page x (starting from page 0x40, or 64 in decimal).
+                #   2. Check if the first character is 0x07 (start byte).
+                #       [Y] Append to a binary file, save metadata to a log file, and print the page number (x of max y). Go back to point 1.
+                #       [N] Download complete
+                #   3. Generate a CSV file.
 
-            # Start from first page to page x
-            print(colored("\nStart reading memory content...","magenta"))
+                # (OOOOOOOOOOOOOOOOOO::::::) idea for tqdm
 
-            # Initialized parameter for the cycle
-            page_num = START_PAGE_NUM
-            find_blank = False
+                # Start from first page to page x
+                print(colored("\nStart reading memory content...","magenta"))
 
-            while ( page_num < (START_PAGE_NUM + 5) ) and ( not find_blank ): # read n pages or stop before if you find a blank
-                print(f"Reading page {page_num}... ")
-                # dump page and collect find_blank flag
-                find_blank = self.dutDev.dumpPage(hex(page_num)[2:], filename) # convert dec page_num to hex -> 64 to '40'
-                page_num += 1
+                # Initialized parameter for the cycle
+                page_num = START_PAGE_NUM
+                find_blank = False
 
-            #==================================================================
-            # CLOSING COMMUNICATION WITH DEVICE
+                while ( page_num < (START_PAGE_NUM + 5) ) and ( not find_blank ): # read n pages or stop before if you find a blank
+                    print(f"Reading page {page_num}... ")
+                    # dump page and collect find_blank flag
+                    find_blank = self.dutDev.dumpPage(hex(page_num)[2:], filename) # convert dec page_num to hex -> 64 to '40'
+                    page_num += 1
 
-            # print read time
-            print(colored(f"Time: {round((time.monotonic()-start_time), 2)}", 'blue'))
+                #==================================================================
+                # CLOSING COMMUNICATION WITH DEVICE
 
-            # Reset DUT information (eui, passkey, etc.) - Once communication with is no more needed
-            self.endTest()
-            self.dutDev.resetInfo()
-            self.dutDev.serialP.close()
+                # print read time
+                print(colored(f"Time: {round((time.monotonic()-start_time), 2)}", 'blue'))
+
+            finally:
+                # Reset DUT information (eui, passkey, etc.) - Once communication with is no more needed
+                self.endTest()
+                self.dutDev.resetInfo()
+                self.dutDev.serialP.close()
+
             #==================================================================
             # DECODE PAGES
 

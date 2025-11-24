@@ -2,10 +2,17 @@
 
 ## Features da implementare
 
-- Gestire i pacchetti degli altri tipi di sensori. In apertura leggere il tipo di sensore collegato
-- inserire grafica di aggiornamento
+- gestire i pacchetti degli altri tipi di sensori. In apertura leggere il tipo di sensore collegato
+- inserire grafica di aggiornamento: NB è verosimile che tutti i sensori avranno riempito la   memoria! Altrimenti inserisci la barra di aggiornamento solo per ala generazione del CSV.
+- struttura try, finally per assicurarsi di chiudere la comunicazione
+- inserire controllo sulla pagina massima: 32768
+- generazione CSV
+
 
 ## Bug 
+
+- migliorare gestione lettura della flash
+
 
 ## Migliorie
 
@@ -24,3 +31,6 @@
 
 
 ## Idee e altro
+
+- inserire json file di configurazione del tool: attivazione modalità debug con print, attivazione decodifica ...
+

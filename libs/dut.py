@@ -7,7 +7,7 @@ from tqdm import trange
 from hashlib import sha256
 from typing import List, Tuple
 
-TOT_PAGE_BYTES   = 2115  # Counting also O\r\n [2112+3]
+BYTES_PER_PAGE   = 2115  # Counting also O\r\n [2112+3]
 MESSAGE_START_ID = 7 # 07 in hex
 
 class recordInfo:
@@ -133,21 +133,41 @@ class DUT :
     # Function do not use the AT class bc it's complicated -> directly use the serial
     # !!! Come funziona il timeout? Vorrei che scattasse solo se non arriva niente nel buffer per un po' di tempo (devo resettare il contatore come un watchdog!)
 
-    def dumpPage(self, page: str, filename : str, c_timeout : float = 4) -> bool:
+    def dumpPage(self, page: str, filename : str, c_timeout : float = 2) -> bool:
+        """
+        Read one page of external flash memory and append the content in:
+            - <filname>.bin as binary
+            - <filname>.txt as hex
 
+        Return:
+            bool: True when it finds a blank page or an error occurs
+        """
         self.serialP.ser.flushInput()
-        self.serialP.ser.timeout = 5
+        self.serialP.ser.timeout = 0.5 # Short timeout for read()
+
         cmd = f"AT+EFLASHRP={page};0;840\r\n"
         len_cmd = len(cmd)
+        EXPECTED_RESPONSE = BYTES_PER_PAGE + len_cmd
+
         buffer = b""
         start_time = time.monotonic()
 
-        self.serialP.ser.write(cmd.encode("utf-8")) # bytes representation of cmd
+        self.serialP.ser.write(cmd.encode("utf-8")) # .encode("utf-8") -> bytes representation of cmd ; send command
 
-        while len(buffer) < (TOT_PAGE_BYTES + len_cmd) and (time.monotonic() - start_time) < c_timeout :
-                chunk = self.serialP.ser.read(TOT_PAGE_BYTES + len_cmd)  # Read page
-                buffer += chunk
-        cln_buff = buffer[len_cmd:(TOT_PAGE_BYTES - 3) + len_cmd] # Remove cmd and O\r\n
+        # Read page until you have read it all or the timeout occurs
+        while len(buffer) < EXPECTED_RESPONSE and (time.monotonic() - start_time) < c_timeout :
+                remaining = EXPECTED_RESPONSE - len(buffer)
+                chunk = self.serialP.ser.read(remaining)  # Read page
+                if chunk:
+                    buffer += chunk
+
+        if len(buffer) < EXPECTED_RESPONSE:
+            print(f"WARN: Timeout | Received {len(buffer)}/{EXPECTED_RESPONSE} bytes")
+            error = True
+            return error # exit as you find a blank page
+
+        cln_buff = buffer[len_cmd:len_cmd + (BYTES_PER_PAGE - 3)] # Remove cmd and O\r\n
+        
         if cln_buff[0] == MESSAGE_START_ID: # check if the page is written or blank
             # Append if is written
             print(f'Data recv len {len(cln_buff)}') 
@@ -156,12 +176,12 @@ class DUT :
             hex_page = cln_buff.hex()
             with open (filename + ".txt", "a") as hexfile:
                 hexfile.write(hex_page)
-            blank_finded = False # update flag
-            return blank_finded
+            blank_found = False # update flag
+            return blank_found
         else :
             # set a flag if it is blank
-            blank_finded = True # update flag
-            return blank_finded
+            blank_found = True # update flag
+            return blank_found
 
     
     # read all the MIC memory to bin file (recording data)
