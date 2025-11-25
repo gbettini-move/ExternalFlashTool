@@ -128,11 +128,14 @@ class Eflash_reader_App :
                 page_num = START_PAGE_NUM
                 find_blank = False
 
-                while ( page_num < (START_PAGE_NUM + 10) ) and ( not find_blank ): # read n pages or stop before if you find a blank
+                while page_num < (START_PAGE_NUM + 50) : # read n pages
                     print(f"Reading page {page_num}... ")
                     # dump page and collect find_blank flag
                     find_blank = self.dutDev.dumpPage(hex(page_num)[2:], filename) # convert dec page_num to hex -> 64 to '40'
-                    page_num += 1
+                    if not find_blank:
+                        page_num += 1
+                    else:   # stop before if you find a blank
+                        break
 
                 #==================================================================
                 # CLOSING COMMUNICATION WITH DEVICE
