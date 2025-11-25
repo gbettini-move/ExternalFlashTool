@@ -6,7 +6,6 @@
 - inserire grafica di aggiornamento: NB è verosimile che tutti i sensori avranno riempito la memoria! Altrimenti inserisci la barra di aggiornamento solo per la generazione del CSV. -> perlomeno dare un feedback visivo all'utente che il programma non si è piantato. Aggiorna la pagina letta ma sempre sulla stessa riga del terminale.
 - struttura try, finally per assicurarsi di chiudere la comunicazione
 - inserire controllo sulla pagina massima: 32768. NB: sembrerebbe che le ultime pagine sono per la diagnostica (ad esempio la 31427)
-- generazione CSV
 
 ## Bug
 

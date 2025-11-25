@@ -128,7 +128,7 @@ class Eflash_reader_App :
                 page_num = START_PAGE_NUM
                 find_blank = False
 
-                while ( page_num < (START_PAGE_NUM + 10) ) and ( not find_blank ): # read n pages or stop before if you find a blank
+                while ( page_num < (START_PAGE_NUM + 3) ) and ( not find_blank ): # read n pages or stop before if you find a blank
                     print(f"Reading page {page_num}... ")
                     # dump page and collect find_blank flag
                     find_blank = self.dutDev.dumpPage(hex(page_num)[2:], filename) # convert dec page_num to hex -> 64 to '40'
@@ -151,10 +151,29 @@ class Eflash_reader_App :
 
             workbook  = xlsxwriter.Workbook("flash_content.xlsx") # xlsx file name
             worksheet = workbook.add_worksheet("eFlash") # generating the sheet
+
+            header_format = workbook.add_format({
+                "bold": True,
+                "bg_color": "#E0AF76",   
+                "font_color": "#000000",
+                "border": 1,
+                "align": "center",
+                "valign": "vcenter"
+                })
+            
+            # row format
+            fmt_even = workbook.add_format({"bg_color": "#E0DEDE", "align": "left", "border": 1, "border_color": "#838080"})
+            fmt_odd  = workbook.add_format({"bg_color": "#FFFFFF", "align": "left", "border": 1, "border_color": "#838080"})
+
+            # page separator
+            fmt_separator = workbook.add_format({"bg_color": "#E0DEDE", "align": "left", "border": 1, "border_color": "#838080", "bottom": 2, "bottom_color": "#000000"})
+
             row = 0
 
             for col, header in enumerate(XLSX_HEADER):
-                worksheet.write(row, col, header) # row 0 -> headers
+                worksheet.write(row, col, header, header_format) # row 0 -> headers
+                col_width = max(len(header) + 2, 10) # adjust column width (> 10 for date and time)
+                worksheet.set_column(col, col, col_width)
 
             tot_page = page_num - START_PAGE_NUM 
 
@@ -196,10 +215,11 @@ class Eflash_reader_App :
                         rec_content["Tail-Rec.Length"]    = len_pl
 
                         # add row to xlsx
-                        row += 1 # move one row ahead 
+                        row += 1 # move one row ahead
+                        fmt = fmt_separator if row % 8 == 0 else fmt_even if row % 2 == 0 else fmt_odd # choose the format
                         for col, header in enumerate(XLSX_HEADER):
                             value = search_in(rec_content, header)
-                            worksheet.write(row, col, value) # add record columns
+                            worksheet.write(row, col, value, fmt) # add record columns
                     else:
                         raise Exception ("Error decoding files - try again")
 
