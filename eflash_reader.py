@@ -17,8 +17,8 @@ HEADER = colored(r"""
  |_|  |_|\___/ \_/ \___| |____/ \___/|_|\__,_|\__|_|\___/|_| |_|___/
                                                                     """, 'green')
 
-XLSX_HEADER = ["Page n.", "Record n.", "Date", "Time", "Temperature", "Vertical Axis", "Alpha 1", "Alpha 2", "Alpha 3",
-                "Acc. Peak", "Acc. RMS", "Avg. Samples", "Full scale", "Acc. Threshold"]
+XLSX_HEADER = ["Page n.", "Record n.", "Date", "Time", "Temperature [°C]", "Vertical Axis", "Alpha 1 [°]", "Alpha 2 [°]", "Alpha 3 [°]",
+                "Acc. Peak [mg]", "Acc. RMS [mg]", "Avg. Samples", "Full scale", "Acc. Threshold [mg]"]
 
 HELP = colored("""
 1. Connect the SmartCable to the PC.
@@ -128,7 +128,7 @@ class Eflash_reader_App :
                 page_num = START_PAGE_NUM
                 find_blank = False
 
-                while ( page_num < (START_PAGE_NUM + 3) ) and ( not find_blank ): # read n pages or stop before if you find a blank
+                while ( page_num < (START_PAGE_NUM + 10) ) and ( not find_blank ): # read n pages or stop before if you find a blank
                     print(f"Reading page {page_num}... ")
                     # dump page and collect find_blank flag
                     find_blank = self.dutDev.dumpPage(hex(page_num)[2:], filename) # convert dec page_num to hex -> 64 to '40'

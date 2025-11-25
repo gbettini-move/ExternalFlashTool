@@ -4,16 +4,16 @@ HEADER_MAP = {
     "Record n.":       "Record n.",
     "Date":            "time",
     "Time":            "time",
-    "Temperature":     "temperature",
+    "Temperature [°C]":     "temperature",
     "Vertical Axis":   "verticalAxis",
-    "Alpha 1":         "alpha1",
-    "Alpha 2":         "alpha2",
-    "Alpha 3":         "alpha3",
-    "Acc. Peak":       "axePeak",
-    "Acc. RMS":        "axeRms",
+    "Alpha 1 [°]":         "alpha1",
+    "Alpha 2 [°]":         "alpha2",
+    "Alpha 3 [°]":         "alpha3",
+    "Acc. Peak [mg]":       "axePeak",
+    "Acc. RMS [mg]":        "axeRms",
     "Avg. Samples":    "avgSamp",
     "Full scale":      "range",
-    "Acc. Threshold":  "axeTh",
+    "Acc. Threshold [mg]":  "axeTh",
 
 }
 
