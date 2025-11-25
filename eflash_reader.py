@@ -6,6 +6,8 @@ import os
 import time
 from termcolor import colored
 import module.read_page as rp
+import xlsxwriter
+from utils import search_in
 
 HEADER = colored(r"""
   __  __                  ____        _       _   _                 
@@ -14,6 +16,9 @@ HEADER = colored(r"""
  | |  | | (_) \ V /  __/  ___) | (_) | | |_| | |_| | (_) | | | \__ \
  |_|  |_|\___/ \_/ \___| |____/ \___/|_|\__,_|\__|_|\___/|_| |_|___/
                                                                     """, 'green')
+
+XLSX_HEADER = ["Page n.", "Record n.", "Date", "Time", "Temperature", "Vertical Axis", "Alpha 1", "Alpha 2", "Alpha 3",
+                "Acc. Peak", "Acc. RMS", "Avg. Samples", "Full scale", "Acc. Threshold"]
 
 HELP = colored("""
 1. Connect the SmartCable to the PC.
@@ -42,7 +47,7 @@ class Eflash_reader_App :
 
     # Open conection with smartcable and turn on the USB power supply
     def initApp(self) -> bool :
-        smartc : SmartCableManager | None
+        #smartc : SmartCableManager | None
 
         if(self.smartc is None) :
             self.smartc = SmartCableManager()
@@ -69,6 +74,8 @@ class Eflash_reader_App :
             os.remove(filename + ".bin")
         if os.path.exists(filename + ".txt"):
             os.remove(filename + ".txt")
+        if os.path.exists("flash_content.xlsx"):
+            os.remove("flash_content.xlsx")
 
         while(True) :
             
@@ -105,10 +112,6 @@ class Eflash_reader_App :
                 # page_num = 40
                 # self.dutDev.dumpPage(page_num, filename)
 
-                # Test a generic AT command
-                # time.sleep(1)
-                # self.dutDev.getAPPEUIandKEY()
-
                 # Execute an infinite loop where:
                 #   1. Read page x (starting from page 0x40, or 64 in decimal).
                 #   2. Check if the first character is 0x07 (start byte).
@@ -125,7 +128,7 @@ class Eflash_reader_App :
                 page_num = START_PAGE_NUM
                 find_blank = False
 
-                while ( page_num < (START_PAGE_NUM + 5) ) and ( not find_blank ): # read n pages or stop before if you find a blank
+                while ( page_num < (START_PAGE_NUM + 10) ) and ( not find_blank ): # read n pages or stop before if you find a blank
                     print(f"Reading page {page_num}... ")
                     # dump page and collect find_blank flag
                     find_blank = self.dutDev.dumpPage(hex(page_num)[2:], filename) # convert dec page_num to hex -> 64 to '40'
@@ -144,15 +147,24 @@ class Eflash_reader_App :
                 self.dutDev.serialP.close()
 
             #==================================================================
-            # DECODE PAGES
+            # DECODE PAGES AND GENERATE XLSX FILE
+
+            workbook  = xlsxwriter.Workbook("flash_content.xlsx") # xlsx file name
+            worksheet = workbook.add_worksheet("eFlash") # generating the sheet
+            row = 0
+
+            for col, header in enumerate(XLSX_HEADER):
+                worksheet.write(row, col, header) # row 0 -> headers
 
             tot_page = page_num - START_PAGE_NUM 
 
             # Open the hex_page.txt
             with open("dump.txt", 'r') as f: 
                 log = f.read()
+            
+            rec_content = {}
 
-            for index_page in range(tot_page):
+            for index_page in range(tot_page): # cicle for the pages
                 hex_page = log[index_page*HEX_IN_PAGE:(index_page + 1)*HEX_IN_PAGE]
 
                 # Cuts hex_page into 8 blocks of length 256 bytes
@@ -161,27 +173,37 @@ class Eflash_reader_App :
                 for i in range (0, len(hex_page) - rp.SPARE_LENGTH_BYTE*2, rp.RECORD_LENGTH_BYTE*2): # *2 because we are working with hex
                     record[index] = hex_page[i : i + rp.RECORD_LENGTH_BYTE*2]
                     index += 1
+                
+                rec_content["Page n."] = index_page + 64
 
-                    # Reads data of all 8 records
-                print(colored("==============================", "magenta"))
-                print(colored(f"CONTENT OF PAGE {64 + index_page}", "magenta"))
-                for i in range(0, rp.RECORDS_PER_PAGE):
-                    if (record[i][0:2] == rp.START_BYTE):
+                # Reads data of all 8 records
+
+                for i in range(0, rp.RECORDS_PER_PAGE): # cicle for the records
+                    if (record[i] is not None and record[i][0:2] == rp.START_BYTE): # record[i] is not None to avoid error 'NoneType' object is not subscriptable
                         record[i] = record[i][2:] # Remove start byte
-                        print(colored("------------------------------", "yellow"))
-                        print(colored(f"RECORD {i} PAYLOAD:", "yellow"))
-                        rp.read_record(record[i])
-                        
-                        print("TAIL CONTENT")
+
+                        rec_content["Record n."] = i + 1 # record counted from 1 to 8
+                        rec_content.update(rp.read_record(record[i]))
+
                         tail = record[i][-rp.TAIL_LENGTH_BYTE*2:] # 18 hex
                         len_pl = int(
                             tail[0:2], 16
                         )  # len payload record x (it consider also the start byte 0x07)
                         ts_rc = int(tail[2:10], 16)  # record timestamp
                         time_rc = rp.datetime.fromtimestamp(ts_rc).isoformat()
-                        print(f"Record timestamp: {time_rc}")
-                        print(f"Record length: {len_pl}")
 
+                        rec_content["Tail-Rec.Timestamp"] = time_rc # add also the tail content to the record_content
+                        rec_content["Tail-Rec.Length"]    = len_pl
+
+                        # add row to xlsx
+                        row += 1 # move one row ahead 
+                        for col, header in enumerate(XLSX_HEADER):
+                            value = search_in(rec_content, header)
+                            worksheet.write(row, col, value) # add record columns
+                    else:
+                        raise Exception ("Error decoding files - try again")
+
+            workbook.close() # save the file
 
 
             break
@@ -199,4 +221,4 @@ if __name__ == "__main__":
     app.initApp()
     app.readExtFlash()
 
-    print(colored("===================================================================","magenta"))
+    print(colored("==============================", "magenta"))

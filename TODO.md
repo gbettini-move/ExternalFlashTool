@@ -3,16 +3,14 @@
 ## Features da implementare
 
 - gestire i pacchetti degli altri tipi di sensori. In apertura leggere il tipo di sensore collegato
-- inserire grafica di aggiornamento: NB è verosimile che tutti i sensori avranno riempito la   memoria! Altrimenti inserisci la barra di aggiornamento solo per ala generazione del CSV.
+- inserire grafica di aggiornamento: NB è verosimile che tutti i sensori avranno riempito la memoria! Altrimenti inserisci la barra di aggiornamento solo per la generazione del CSV. -> perlomeno dare un feedback visivo all'utente che il programma non si è piantato. Aggiorna la pagina letta ma sempre sulla stessa riga del terminale.
 - struttura try, finally per assicurarsi di chiudere la comunicazione
-- inserire controllo sulla pagina massima: 32768
+- inserire controllo sulla pagina massima: 32768. NB: sembrerebbe che le ultime pagine sono per la diagnostica (ad esempio la 31427)
 - generazione CSV
 
+## Bug
 
-## Bug 
-
-- migliorare gestione lettura della flash
-
+- capire il problema su firmware
 
 ## Migliorie
 
@@ -33,4 +31,3 @@
 ## Idee e altro
 
 - inserire json file di configurazione del tool: attivazione modalità debug con print, attivazione decodifica ...
-

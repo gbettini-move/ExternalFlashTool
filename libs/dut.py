@@ -129,9 +129,6 @@ class DUT :
         print(f'DUT -> FW-VERSION={ret[0]}')
         return ret[0]
     
-    # read a complete page of eflash mem -> bin
-    # Function do not use the AT class bc it's complicated -> directly use the serial
-    # !!! Come funziona il timeout? Vorrei che scattasse solo se non arriva niente nel buffer per un po' di tempo (devo resettare il contatore come un watchdog!)
 
     def dumpPage(self, page: str, filename : str, c_timeout : float = 2) -> bool:
         """
@@ -170,7 +167,7 @@ class DUT :
         
         if cln_buff[0] == MESSAGE_START_ID: # check if the page is written or blank
             # Append if is written
-            print(f'Data recv len {len(cln_buff)}') 
+            # print(f'Data recv len {len(cln_buff)}') 
             with open(filename + ".bin", 'ab') as rawfile:
                 rawfile.write(cln_buff)
             hex_page = cln_buff.hex()

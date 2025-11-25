@@ -190,8 +190,10 @@ def read_record(pl: str):
         ret["angVelTh"] = round(
             float(angVelThr) * ANGULAR_VEL_RESOLUTION, ANGULAR_VEL_DECIMAL_FIGURES
         )
+    
+    return ret
 
-    print(json.dumps(ret, indent=4))
+    # print(json.dumps(ret, indent=4)) // uncomment if you want to print the records
 
 
 # ________________________________________

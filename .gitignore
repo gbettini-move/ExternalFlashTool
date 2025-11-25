@@ -3,3 +3,4 @@ dump.bin
 dump.txt
 __pycache__/
 Pipfile.lock
+flash_content.xlsx
