@@ -1,0 +1,42 @@
+@External_Flash_Tool
+
+Features da implementare:
+  ☐ Gestire la diversa struttura dei messaggi e decodifica dei vari sensori -> In apertura leggere il tipo di sensore collegato.
+  ☐ Controlli sull'ultima pagina (32768). NB: ci sono pagine di diagnostica. Controlla firmware.
+
+Modifiche:
+  ☐ Unisci Date e Time. Usa il formato `datetime.isoformat()`
+      Controlla che timestamp sia in UTC. Modifica la funzione di mapping.
+  ☐ Rimuovi colonne Page n. e Record n.
+
+Bug:
+  ☐ Trovare il bug nel firmware. Quando si passa da un settore al successivo @critical
+  ☐ Risoluzione errore WARN: Timeout. Gestire questo errore. @high
+      Valuta se rilanciare più volte la lettura della stessa pagina (magari 3 volte e se il problema persiste procedi).
+      Se rimane un buco nel download sempre meglio che perdere tutto il resto.
+      Oppure, proare ingrandendo il timeout?
+  ☐ Gestione error_decoding_files @high
+
+Idee e miglioramenti:
+  ☐ Modificare read_page creando li la struttura da utilizzare, evitando il passaggio intermedio di search_in.
+      dt.date.isoformat()
+      dt.time.isoformat()
+  ☐ Inserire grafica di aggiornamento.
+      NB è verosimile che tutti i sensori avranno riempito la memoria!
+      Altrimenti inserisci la barra di aggiornamentosolo per la generazione del CSV
+      Perlomeno dare un feedback visivo all'utente che il programma non si è piantato.
+      Aggiorna la pagina letta ma sempre sulla stessa riga del terminale.
+  ☐ Implementare *lettura più veloce* con *AT+BUART = 460800*. Disponibile solo per release t.4.11 (non so sugli altri sensori).
+      Segui il seguente ordine
+        1. reset device
+        2. AT+TST
+        3. AT+BUART = 460800
+        4. chiudi seriale
+        5. apri seriale nuova
+        6. scarica
+        7. chiudi seriale e resetta (ritorna il boudrate di default, ossia 115200)
+      Secondo Marco devo implementarla senza usare la classe
+  ☐ Json file di configurazione del tool: attivazione modalità debug con print, attivazione sola decodifica ...
+
+Archiviate:
+

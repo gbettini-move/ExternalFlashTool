@@ -138,7 +138,7 @@ class ATShell :
     def sendCommand(self, cmd : str, args : str = '' , c_timeout : float = RESPONSE_TIMEOUT) -> Tuple[bool, List[str]] : 
         ret:list[str] = []
         msg : str
-        if not ('AT' in cmd[:2] ) :
+        if ('AT' not in cmd[:2] ) :
             msg = 'AT+' + cmd
         else :
             msg = cmd
@@ -156,9 +156,9 @@ class ATShell :
         # Wait for a response that was received after the message was sent
         tmp = None
         response = ''
-        while tmp == None and (time.monotonic() - start_time) < c_timeout :
+        while tmp is None and (time.monotonic() - start_time) < c_timeout :
             tmp = self.port.read_message()
-            if tmp != None :
+            if tmp is not None :
                 # print(tmp)
                 self.test.append(tmp)
                 if regex.match(err_pattern, tmp) :
@@ -166,7 +166,7 @@ class ATShell :
                 elif tmp == 'O' :
                     ret.append(response)
                     break
-                elif not (msg in tmp) :
+                elif (msg not in tmp) :
                     ret.append(tmp)
                     #response += tmp
                 tmp = None
