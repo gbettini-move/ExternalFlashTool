@@ -7,7 +7,7 @@ import time
 from termcolor import colored
 import module.read_page as rp
 import xlsxwriter
-from utils import search_in
+from utils import search_in, HEADER_MAP
 
 HEADER = colored(r"""
   __  __                  ____        _       _   _                 
@@ -17,8 +17,7 @@ HEADER = colored(r"""
  |_|  |_|\___/ \_/ \___| |____/ \___/|_|\__,_|\__|_|\___/|_| |_|___/
                                                                     """, 'green')
 
-XLSX_HEADER = ["Timestamp (UTC)", "Temperature [°C]", "Vertical Axis", "Alpha 1 [°]", "Alpha 2 [°]", "Alpha 3 [°]",
-                "Acc. Peak [mg]", "Acc. RMS [mg]", "Avg. Samples", "Full scale", "Acc. Threshold [mg]"]
+XLSX_HEADER = list(HEADER_MAP.keys())
 
 HELP = colored("""
 1. Connect the SmartCable to the PC.

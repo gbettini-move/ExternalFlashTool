@@ -14,11 +14,11 @@ Modifiche:
   ✔ Unisci Date e Time. chiama l'header corrispondente Timestamp (UTC). Usa il formato `datetime.isoformat()` @started(25-11-27 11:51) @done(25-11-27 12:40) @lasted(49m45s)
       Controlla che timestamp sia in UTC. Modifica la funzione di mapping.
   ✔ Rimuovi colonne Page n. e Record n. @started(25-11-27 11:52) @done(25-11-27 12:40) @lasted(48m27s)
-  ☐ Fai modifica al multilogger (Timestamp UTC). Fai una repo con le librerie del multilogger!
+  ✔ Xslx adesso con timestamp in UTC @done(25-11-27 15:18)
 
 Bug:
   ✔ Trovare il bug nel firmware. Quando si passa da un settore al successivo @critical @started(25-11-26 16:05) @done(25-11-27 11:21) @lasted(19h16m1s)
-  ☐ Risoluzione errore WARN: Timeout. Gestire questo errore. @high @started(25-11-27 12:11)
+  ☐ Risoluzione errore WARN: Timeout. Gestire questo errore. @high
       Valuta se rilanciare più volte la lettura della stessa pagina (magari 3 volte e se il problema persiste procedi).
       Se rimane un buco nel download sempre meglio che perdere tutto il resto.
       Oppure, provare ingrandendo il timeout?
@@ -27,9 +27,7 @@ Bug:
   ☐ Gestione error_decoding_files @high
 
 Idee e miglioramenti:
-  ☐ Modificare read_page creando li la struttura da utilizzare, evitando il passaggio intermedio di search_in.
-      dt.date.isoformat()
-      dt.time.isoformat()
+  ✔ Evitare duplicazioni e mancato allineamento tra XLSX_HEADER e HEADER_MAP @started(25-11-27 15:20) @done(25-11-27 15:30) @lasted(10m15s)
   ☐ Inserire grafica di aggiornamento.
       NB è verosimile che tutti i sensori avranno riempito la memoria!
       Altrimenti inserisci la barra di aggiornamentosolo per la generazione del CSV
