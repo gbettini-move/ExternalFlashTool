@@ -3,18 +3,27 @@
 Features da implementare:
   ☐ Gestire la diversa struttura dei messaggi e decodifica dei vari sensori -> In apertura leggere il tipo di sensore collegato.
   ☐ Controlli sull'ultima pagina (32768). NB: ci sono pagine di diagnostica. Controlla firmware.
+  -------------- 
+  ☐ All'apertura del programma lettura del firmware e dell'hash
+      Da questo decidi come comportarti --> se ti aspetti di leggere un solo blocco
+                                        --> se ti aspetti di poter leggere tutta la memoria con boudrate maggiore
+  ☐ Trova il modo di inviare in seriale solo i byte informativi e non gli zeri
+
 
 Modifiche:
-  ☐ Unisci Date e Time. Usa il formato `datetime.isoformat()`
+  ✔ Unisci Date e Time. chiama l'header corrispondente Timestamp (UTC). Usa il formato `datetime.isoformat()` @started(25-11-27 11:51) @done(25-11-27 12:40) @lasted(49m45s)
       Controlla che timestamp sia in UTC. Modifica la funzione di mapping.
-  ☐ Rimuovi colonne Page n. e Record n.
+  ✔ Rimuovi colonne Page n. e Record n. @started(25-11-27 11:52) @done(25-11-27 12:40) @lasted(48m27s)
+  ☐ Fai modifica al multilogger (Timestamp UTC). Fai una repo con le librerie del multilogger!
 
 Bug:
-  ☐ Trovare il bug nel firmware. Quando si passa da un settore al successivo @critical
-  ☐ Risoluzione errore WARN: Timeout. Gestire questo errore. @high
+  ✔ Trovare il bug nel firmware. Quando si passa da un settore al successivo @critical @started(25-11-26 16:05) @done(25-11-27 11:21) @lasted(19h16m1s)
+  ☐ Risoluzione errore WARN: Timeout. Gestire questo errore. @high @started(25-11-27 12:11)
       Valuta se rilanciare più volte la lettura della stessa pagina (magari 3 volte e se il problema persiste procedi).
       Se rimane un buco nel download sempre meglio che perdere tutto il resto.
-      Oppure, proare ingrandendo il timeout?
+      Oppure, provare ingrandendo il timeout?
+      Succede solo quando supero il primo blocco? <!> [Error decoding files - try again] ricapitato nella lettura del secondo blocco...
+      Potrebbe essere legato al funzionamento scorretto della memoria?
   ☐ Gestione error_decoding_files @high
 
 Idee e miglioramenti:
@@ -37,6 +46,7 @@ Idee e miglioramenti:
         7. chiudi seriale e resetta (ritorna il boudrate di default, ossia 115200)
       Secondo Marco devo implementarla senza usare la classe
   ☐ Json file di configurazione del tool: attivazione modalità debug con print, attivazione sola decodifica ...
+  ☐ Implementare nuovo comando AT per lettura completa della memoria - per nuovo firmware!
 
 Archiviate:
 

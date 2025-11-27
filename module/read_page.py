@@ -1,6 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import json
-
 
 RECORD_LENGTH_BYTE = 256
 TAIL_LENGTH_BYTE   = 9
@@ -61,7 +60,7 @@ def _twoscomp_str(_str, bitnum=8):
         temp -= 2**bitnum
     return temp
 
-def read_record(pl: str):
+def tilt_record(pl: str):
 
     ts = int(pl[6:8] + pl[4:6] + pl[2:4] + pl[0:2], 16)
 
@@ -79,7 +78,7 @@ def read_record(pl: str):
     type = (int(pl[44:46], 16) >> 6) & 0b11
 
     ret = {
-        "time": datetime.fromtimestamp(ts).isoformat(),
+        "time": datetime.fromtimestamp(ts, timezone.utc).strftime('%Y-%m-%dT%H:%M:%S'),
         "temperature": round(
             float(t) * TEMPERATURE_RESOLUTION - TEMPERATURE_OFFSET,
             TEMPERATURE_DECIMAL_FIGURES,
@@ -193,19 +192,13 @@ def read_record(pl: str):
     
     return ret
 
-    # print(json.dumps(ret, indent=4)) // uncomment if you want to print the records
-
-
 # ________________________________________
 if __name__ == "__main__":
-    # Open the hex_page.txt
-    with open("dump.txt", 'r') as f:  # "hex_page.txt"
-        hex_page = f.read()
-    
-    record_one = hex_page[:4224]
-    record_two = hex_page[4224:] # 2112 * 2
 
-    hex_page = record_two
+    # <!> It only works when dump.txt contains a single page
+    
+    with open("..\dump.txt", 'r') as f:  
+        hex_page = f.read()
 
     # Cuts hex_page into 8 blocks of length 256 bytes
     index  = 0
@@ -220,7 +213,8 @@ if __name__ == "__main__":
             record[i] = record[i][2:] # Remove start byte
             print("------------------------------")
             print(f"RECORD {i} PAYLOAD:")
-            read_record(record[i])
+            data = tilt_record(record[i])
+            print(json.dumps(data, indent=4))
             
             print("TAIL CONTENT")
             tail = record[i][-TAIL_LENGTH_BYTE*2:] # 18 hex
@@ -228,6 +222,6 @@ if __name__ == "__main__":
                 tail[0:2], 16
             )  # len payload record x (it consider also the start byte 0x07)
             ts_rc = int(tail[2:10], 16)  # record timestamp
-            time_rc = datetime.fromtimestamp(ts_rc).isoformat()
+            time_rc = datetime.fromtimestamp(ts_rc, timezone.utc).strftime('%Y-%m-%dT%H:%M:%S') #.isoformat().replace("+00:00", ""),
             print(f"Record timestamp: {time_rc}")
             print(f"Record length: {len_pl}")

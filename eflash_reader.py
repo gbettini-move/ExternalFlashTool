@@ -17,7 +17,7 @@ HEADER = colored(r"""
  |_|  |_|\___/ \_/ \___| |____/ \___/|_|\__,_|\__|_|\___/|_| |_|___/
                                                                     """, 'green')
 
-XLSX_HEADER = ["Page n.", "Record n.", "Date", "Time", "Temperature [°C]", "Vertical Axis", "Alpha 1 [°]", "Alpha 2 [°]", "Alpha 3 [°]",
+XLSX_HEADER = ["Timestamp (UTC)", "Temperature [°C]", "Vertical Axis", "Alpha 1 [°]", "Alpha 2 [°]", "Alpha 3 [°]",
                 "Acc. Peak [mg]", "Acc. RMS [mg]", "Avg. Samples", "Full scale", "Acc. Threshold [mg]"]
 
 HELP = colored("""
@@ -139,7 +139,7 @@ class Eflash_reader_App :
                         page_num += 1 # the first page is already added
                         break
 
-                page_to_read = 60 # maximum number of page that you want to read
+                page_to_read = 1 # maximum number of page that you want to read
                 # Read page of the block
                 for i in range(page_to_read - 1): # The first page has already been read in the cycle above ( so - 1 is necessary )
                     print(f"Reading page {page_num}... ")
@@ -188,7 +188,7 @@ class Eflash_reader_App :
 
             for col, header in enumerate(XLSX_HEADER):
                 worksheet.write(row, col, header, header_format) # row 0 -> headers
-                col_width = max(len(header) + 2, 10) # adjust column width (> 10 for date and time)
+                col_width = max(len(header) + 2, 19) # adjust column width (> 10 for Timestamp)
                 worksheet.set_column(col, col, col_width)
 
             tot_page = page_num - START_PAGE_NUM 
@@ -218,7 +218,7 @@ class Eflash_reader_App :
                         record[i] = record[i][2:] # Remove start byte
 
                         rec_content["Record n."] = i + 1 # record counted from 1 to 8
-                        rec_content.update(rp.read_record(record[i]))
+                        rec_content.update(rp.tilt_record(record[i]))
 
                         tail = record[i][-rp.TAIL_LENGTH_BYTE*2:] # 18 hex
                         len_pl = int(
