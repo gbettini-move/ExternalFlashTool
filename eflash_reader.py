@@ -28,6 +28,7 @@ HELP = colored("""
 START_PAGE_NUM   = 64   # in dec
 PAGE_PER_BLOCK   = 64
 NUMBER_OF_BLOCKS = 512
+LAST_DATA_BLOCK  = 490
 HEX_IN_PAGE      = 4224 # 2112 * 2
 
 Eflash_reader_App_APPNAME : str = 'Eflash_reader'
@@ -123,30 +124,35 @@ class Eflash_reader_App :
                 print(colored("\nStart reading memory content...","magenta"))
 
                 # Initialized parameter for the cycle
-                page_num = START_PAGE_NUM
+                page_num     = START_PAGE_NUM
+                first_page   = START_PAGE_NUM
+                skip_counter = 0
                 is_blank = False
                 start_time = time.monotonic() # Save download start time to get statistics
 
                 # Find written block. Just have to read the first page of each block.
-                while page_num < (PAGE_PER_BLOCK * NUMBER_OF_BLOCKS) : # The last check is pag n. 32704 < 32768 (total pages). Also, probabily diagnostic pages
-                    print(f"Reading page {page_num}... ")
+                while page_num <= (PAGE_PER_BLOCK * LAST_DATA_BLOCK) : 
                     # dump page and collect is_blank flag
-                    is_blank = self.dutDev.dumpPage(hex(page_num)[2:], filename) # convert dec page_num to hex -> 64 to '40'
+                    is_blank, skip_counter = self.dutDev.dumpPage(hex(page_num)[2:], filename, skip_counter) # convert dec page_num to hex -> 64 to '40'
                     if is_blank:
+                        print(f"Page {page_num} is blank")
                         page_num += 64
+                        first_page = page_num # collect first page number
                     else:
+                        print(f"Reading page {page_num}... ") # just to inform the user (readed in the test above)
                         page_num += 1 # the first page is already added
                         break
 
-                page_to_read = 1 # maximum number of page that you want to read
+                page_to_read = 500 # maximum number of page that you want to read
                 # Read page of the block
                 for i in range(page_to_read - 1): # The first page has already been read in the cycle above ( so - 1 is necessary )
                     print(f"Reading page {page_num}... ")
                     # dump page and collect is_blank flag
-                    is_blank = self.dutDev.dumpPage(hex(page_num)[2:], filename) # convert dec page_num to hex -> 64 to '40'
+                    is_blank, skip_counter = self.dutDev.dumpPage(hex(page_num)[2:], filename, skip_counter) # convert dec page_num to hex -> 64 to '40'
                     if not is_blank:
                         page_num += 1
                     else:   # stop before if you find a blank
+                        print(f"Page {page_num} is blank")
                         break
 
                 #==================================================================
@@ -190,7 +196,9 @@ class Eflash_reader_App :
                 col_width = max(len(header) + 2, 19) # adjust column width (> 10 for Timestamp)
                 worksheet.set_column(col, col, col_width)
 
-            tot_page = page_num - START_PAGE_NUM 
+            if (skip_counter >= 10): # considering 10 as the max number of accettable pages skipped in the log
+                raise Exception (f"Too many pages ({skip_counter}) has been skipped!")
+            tot_page = page_num - first_page - skip_counter # remove from the count the pages that has been skipped
 
             # Open the hex_page.txt
             with open("dump.txt", 'r') as f: 
@@ -198,7 +206,7 @@ class Eflash_reader_App :
             
             rec_content = {}
 
-            for index_page in range(tot_page): # cicle for the pages
+            for index_page in range(tot_page): # cycle for the pages
                 hex_page = log[index_page*HEX_IN_PAGE:(index_page + 1)*HEX_IN_PAGE]
 
                 # Cuts hex_page into 8 blocks of length 256 bytes

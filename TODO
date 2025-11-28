@@ -3,31 +3,32 @@
 Features da implementare:
   ☐ Gestire la diversa struttura dei messaggi e decodifica dei vari sensori -> In apertura leggere il tipo di sensore collegato.
   ☐ Controlli sull'ultima pagina (32768). NB: ci sono pagine di diagnostica. Controlla firmware.
+      Sarebbe interessante iniziare a leggere da messaggio più nuovo al più vecchio.
   -------------- 
   ☐ All'apertura del programma lettura del firmware e dell'hash
       Da questo decidi come comportarti --> se ti aspetti di leggere un solo blocco
                                         --> se ti aspetti di poter leggere tutta la memoria con boudrate maggiore
   ☐ Trova il modo di inviare in seriale solo i byte informativi e non gli zeri
-
+      Sfrutta le informazioni contenute nel tail per farlo!
 
 Modifiche:
   ✔ Unisci Date e Time. chiama l'header corrispondente Timestamp (UTC). Usa il formato `datetime.isoformat()` @started(25-11-27 11:51) @done(25-11-27 12:40) @lasted(49m45s)
       Controlla che timestamp sia in UTC. Modifica la funzione di mapping.
   ✔ Rimuovi colonne Page n. e Record n. @started(25-11-27 11:52) @done(25-11-27 12:40) @lasted(48m27s)
   ✔ Xslx adesso con timestamp in UTC @done(25-11-27 15:18)
+  ☐ Modifica alla XLSX (Stampare il tipo di evento) @started(25-11-28 15:54)
 
 Bug:
   ✔ Trovare il bug nel firmware. Quando si passa da un settore al successivo @critical @started(25-11-26 16:05) @done(25-11-27 11:21) @lasted(19h16m1s)
-  ☐ Risoluzione errore WARN: Timeout. Gestire questo errore. @high
+  ✔ Risoluzione errore -> WARN: Timeout | Received 2114/2137 @high @started(25-11-27 16:45) @done(25-11-28 15:52) @lasted(23h7m53s)
       Valuta se rilanciare più volte la lettura della stessa pagina (magari 3 volte e se il problema persiste procedi).
       Se rimane un buco nel download sempre meglio che perdere tutto il resto.
       Oppure, provare ingrandendo il timeout?
-      Succede solo quando supero il primo blocco? <!> [Error decoding files - try again] ricapitato nella lettura del secondo blocco...
-      Potrebbe essere legato al funzionamento scorretto della memoria?
   ☐ Gestione error_decoding_files @high
 
 Idee e miglioramenti:
   ✔ Evitare duplicazioni e mancato allineamento tra XLSX_HEADER e HEADER_MAP @started(25-11-27 15:20) @done(25-11-27 15:30) @lasted(10m15s)
+  ☐ Qualche funzionalità smart (stampare solo un certo numero di campioni - dai più recenti)
   ☐ Inserire grafica di aggiornamento.
       NB è verosimile che tutti i sensori avranno riempito la memoria!
       Altrimenti inserisci la barra di aggiornamentosolo per la generazione del CSV

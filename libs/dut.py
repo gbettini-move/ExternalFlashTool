@@ -129,56 +129,63 @@ class DUT :
         print(f'DUT -> FW-VERSION={ret[0]}')
         return ret[0]
     
-
-    def dumpPage(self, page: str, filename : str, c_timeout : float = 2) -> bool:
+    # Read page content
+    def dumpPage(self, page: str, filename : str, skip_counter : int, c_timeout : float = 2, max_attempts: int = 3) -> tuple[bool, int]:
         """
         Read one page of external flash memory and append the content in:
             - <filname>.bin as binary
             - <filname>.txt as hex
 
         Return:
-            bool: True when it finds a blank page or an error occurs
+            bool: True when it finds a blank page
+            int:  Takes the count of the number of pages that has been skipped 'couse of multiple timeout error (skip_counter += 1)
         """
-        self.serialP.ser.flushInput()
-        self.serialP.ser.timeout = 0.5 # Short timeout for read()
-
         cmd = f"AT+EFLASHRP={page};0;840\r\n"
         len_cmd = len(cmd)
         EXPECTED_RESPONSE = BYTES_PER_PAGE + len_cmd
 
-        buffer = b""
-        start_time = time.monotonic()
+        for attempt in range(1, max_attempts + 1):
+            self.serialP.ser.flushInput()
+            self.serialP.ser.timeout = 0.5  # Short timeout for read()
 
-        self.serialP.ser.write(cmd.encode("utf-8")) # .encode("utf-8") -> bytes representation of cmd ; send command
+            buffer = b""
+            start_time = time.monotonic()
 
-        # Read page until you have read it all or the timeout occurs
-        while len(buffer) < EXPECTED_RESPONSE and (time.monotonic() - start_time) < c_timeout :
+            # send command
+            self.serialP.ser.write(cmd.encode("utf-8"))
+
+            # Read page until you have read it all or the timeout occurs
+            while len(buffer) < EXPECTED_RESPONSE and (time.monotonic() - start_time) < c_timeout:
                 remaining = EXPECTED_RESPONSE - len(buffer)
-                chunk = self.serialP.ser.read(remaining)  # Read page
+                chunk = self.serialP.ser.read(remaining)
                 if chunk:
                     buffer += chunk
 
-        if len(buffer) < EXPECTED_RESPONSE:
-            print(f"WARN: Timeout | Received {len(buffer)}/{EXPECTED_RESPONSE} bytes")
-            error = True
-            return error # exit as you find a blank page
+            if len(buffer) < EXPECTED_RESPONSE:
+                print(f"WARN: Timeout (attempt {attempt}/{max_attempts}) | Received {len(buffer)}/{EXPECTED_RESPONSE} bytes")
+                if attempt < max_attempts:
+                    time.sleep(0.1)  # short delay before retry
+                    continue
+                else:
+                    # last attempt failed -> increment skip_counter to see the next page
+                    skip_counter += 1
+                    return False, skip_counter
 
-        cln_buff = buffer[len_cmd:len_cmd + (BYTES_PER_PAGE - 3)] # Remove cmd and O\r\n
-        
-        if cln_buff[0] == MESSAGE_START_ID: # check if the page is written or blank
-            # Append if is written
-            # print(f'Data recv len {len(cln_buff)}') 
-            with open(filename + ".bin", 'ab') as rawfile:
-                rawfile.write(cln_buff)
-            hex_page = cln_buff.hex()
-            with open (filename + ".txt", "a") as hexfile:
-                hexfile.write(hex_page)
-            blank_found = False # update flag
-            return blank_found
-        else :
-            # set a flag if it is blank
-            blank_found = True # update flag
-            return blank_found
+            # if everything good
+            cln_buff = buffer[len_cmd:len_cmd + (BYTES_PER_PAGE - 3)]  # Remove cmd and O\r\n
+
+            if cln_buff and cln_buff[0] == MESSAGE_START_ID:  # check if the page is written or blank
+                # Append if is written
+                with open(filename + ".bin", 'ab') as rawfile:
+                    rawfile.write(cln_buff)
+                hex_page = cln_buff.hex()
+                with open(filename + ".txt", "a") as hexfile:
+                    hexfile.write(hex_page)
+                return False, skip_counter  # page has been read correctly
+            else:
+                # Blank page detected
+                return True, skip_counter
+
 
     
     # read all the MIC memory to bin file (recording data)
