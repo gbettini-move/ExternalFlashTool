@@ -16,7 +16,7 @@ Modifiche:
       Controlla che timestamp sia in UTC. Modifica la funzione di mapping.
   ✔ Rimuovi colonne Page n. e Record n. @started(25-11-27 11:52) @done(25-11-27 12:40) @lasted(48m27s)
   ✔ Xslx adesso con timestamp in UTC @done(25-11-27 15:18)
-  ☐ Modifica alla XLSX (Stampare il tipo di evento) @started(25-11-28 15:54)
+  ✔ Modifica alla XLSX (Stampare il tipo di evento) @started(25-11-28 15:54) @done(25-11-28 16:55) @lasted(1h1m6s)
 
 Bug:
   ✔ Trovare il bug nel firmware. Quando si passa da un settore al successivo @critical @started(25-11-26 16:05) @done(25-11-27 11:21) @lasted(19h16m1s)
