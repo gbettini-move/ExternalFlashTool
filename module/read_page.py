@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from termcolor import colored
 import json
 
 RECORD_LENGTH_BYTE = 256
@@ -6,6 +7,7 @@ TAIL_LENGTH_BYTE   = 9
 SPARE_LENGTH_BYTE  = 64
 START_BYTE         = "07" # hex 
 RECORDS_PER_PAGE   = 8
+HEX_IN_PAGE        = 4224
 
 #----------------------------------
 ACCELERATION_RESOLUTION = 0.125
@@ -195,33 +197,46 @@ def tilt_record(pl: str):
 # ________________________________________
 if __name__ == "__main__":
 
-    # <!> It only works when dump.txt contains a single page
+    # <!> cd .\module -> py .\read_page.py
     
     with open("..\dump.txt", 'r') as f:  
-        hex_page = f.read()
+        log = f.read()
+    
+    # find the number of pages
+    tot_pages = int(len(log)/HEX_IN_PAGE)
 
-    # Cuts hex_page into 8 blocks of length 256 bytes
-    index  = 0
-    record = [None] * RECORDS_PER_PAGE
-    for i in range (0, len(hex_page) - SPARE_LENGTH_BYTE*2, RECORD_LENGTH_BYTE*2): # *2 because we are working with hex
-        record[index] = hex_page[i : i + RECORD_LENGTH_BYTE*2]
-        index += 1
+    # DECODE PAGES
+    for index_page in range(tot_pages):
+        hex_page = log[index_page*HEX_IN_PAGE:(index_page + 1)*HEX_IN_PAGE]
+
+        # Cuts each page into 8 blocks of length 256 bytes
+        index = 0
+        record = [None] * RECORDS_PER_PAGE
+        for i in range (0, len(hex_page) - SPARE_LENGTH_BYTE*2, RECORD_LENGTH_BYTE*2): # *2 because we are working with hex
+            record[index] = hex_page[i : i + RECORD_LENGTH_BYTE*2]
+            index += 1
 
     # Reads data of all 8 records
-    for i in range(0, RECORDS_PER_PAGE):
-        if (record[i][0:2] == START_BYTE):
-            record[i] = record[i][2:] # Remove start byte
-            print("------------------------------")
-            print(f"RECORD {i} PAYLOAD:")
-            data = tilt_record(record[i])
-            print(json.dumps(data, indent=4))
+        print(colored("==============================", "magenta"))
+        print(colored(f"CONTENT OF PAGE {index_page}", "magenta"))
+        for i in range(0, RECORDS_PER_PAGE): # cicle for the records
+            if (record[i] is not None and record[i][0:2] == START_BYTE): # record[i] is not None to avoid error 'NoneType' object is not subscriptable
+                record[i] = record[i][2:] # Remove start byte
+                print(colored("------------------------------", "yellow"))
+                print(colored(f"RECORD {i} PAYLOAD:", "yellow"))
+
+                data = tilt_record(record[i])
+                #print(json.dumps(data, indent=4))
             
-            print("TAIL CONTENT")
-            tail = record[i][-TAIL_LENGTH_BYTE*2:] # 18 hex
-            len_pl = int(
-                tail[0:2], 16
-            )  # len payload record x (it consider also the start byte 0x07)
-            ts_rc = int(tail[2:10], 16)  # record timestamp
-            time_rc = datetime.fromtimestamp(ts_rc, timezone.utc).strftime('%Y-%m-%dT%H:%M:%S') #.isoformat().replace("+00:00", ""),
-            print(f"Record timestamp: {time_rc}")
-            print(f"Record length: {len_pl}")
+                print("TAIL CONTENT")
+                tail = record[i][-TAIL_LENGTH_BYTE*2:] # 18 hex
+                len_pl = int(
+                    tail[0:2], 16
+                )  # len payload record x (it consider also the start byte 0x07)
+                ts_rc = int(tail[2:10], 16)  # record timestamp
+                time_rc = datetime.fromtimestamp(ts_rc, timezone.utc).strftime('%Y-%m-%dT%H:%M:%S') #.isoformat().replace("+00:00", ""),
+                print(f"Record timestamp: {time_rc}")
+                print(f"Record length: {len_pl}")
+
+    print(colored("==============================", "magenta"))
+    print(colored(f"TOTAL PAGE READED: {tot_pages}", "light_blue"))
