@@ -1,8 +1,8 @@
 HEADER_MAP = {
 
     "Timestamp (UTC)":     "time",
+    "Event type":          "evnt_type",
     "Temperature [°C]":    "temperature",
-    "Vertical Axis":       "verticalAxis",
     "Alpha 1 [°]":         "alpha1",
     "Alpha 2 [°]":         "alpha2",
     "Alpha 3 [°]":         "alpha3",
@@ -10,7 +10,6 @@ HEADER_MAP = {
     "Acc. RMS [mg]":       "axeRms",
     "Avg. Samples":        "avgSamp",
     "Full scale":          "range",
-    "Acc. Threshold [mg]": "axeTh",
 
 }
 

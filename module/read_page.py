@@ -28,7 +28,7 @@ TEMPERATURE_DECIMAL_FIGURES = 2
 
 VERTICAL = ["+X", "-X", "+Y", "-Y", "+Z", "-Z"]
 
-EVENT_TYPE = ["OnCadence", "OnAxeTrig", "OnAngTrig", "OnVelTrig"]
+EVENT_TYPE = ["Scheduled","AccThreshold","AngleThreshold","AngVelThreshold"]
 
 CADENCE = [
     "30s",
@@ -102,9 +102,10 @@ def tilt_record(pl: str):
         avgSmp = (int(pl[46:48], 16) >> 2) & 0b111
         rng = (int(pl[46:48], 16)) & 0b11
 
-        ret["stdCad"] = CADENCE[stdCad]
-        ret["avgSamp"] = AVERAGING[avgSmp]
-        ret["range"] = RANGE[rng]
+        ret["stdCad"]   = CADENCE[stdCad]
+        ret["avgSamp"]  = AVERAGING[avgSmp]
+        ret["range"]    = RANGE[rng]
+        ret["evnt_type"] = EVENT_TYPE[type]
 
     if type == 1:  # acceleration triggered
         # if len(pl) != (2 * 25):  # 25 bytes
@@ -120,6 +121,7 @@ def tilt_record(pl: str):
         ret["axeTh"] = round(
             float(axeTh) * ACCELERATION_RESOLUTION, ACCELERATION_DECIMAL_FIGURES
         )
+        ret["evnt_type"] = EVENT_TYPE[type]
 
     if type == 2:  # angle triggered
         # if len(pl) != (2 * 37):  # 37 bytes
@@ -167,6 +169,7 @@ def tilt_record(pl: str):
         ret["alpha3HighTh"] = round(
             float(a3ht) * ANGLE16_RESOLUTION, ANGLE16_DECIMAL_FIGURES
         )
+        ret["evnt_type"] = EVENT_TYPE[type]
 
     if type == 3:  # angular velocity triggered
         # if len(pl) != (2 * 27):  # 27 bytes
@@ -191,6 +194,7 @@ def tilt_record(pl: str):
         ret["angVelTh"] = round(
             float(angVelThr) * ANGULAR_VEL_RESOLUTION, ANGULAR_VEL_DECIMAL_FIGURES
         )
+        ret["evnt_type"] = EVENT_TYPE[type]
     
     return ret
 
